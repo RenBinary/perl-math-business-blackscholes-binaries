@@ -917,7 +917,7 @@ sub candle_in {
         my $B = 1 - ((-1) ** $n) * cosh($v * $adjusted_logrange / $sigma2);
         my $C1 = 1 +  ($n ** 2) * ($pi ** 2) * $sigma2 * $t / ($adjusted_logrange ** 2);
         my $C2 = 4 * ($v ** 2) * ($adjusted_logrange ** 2)/(($sigma ** 4) * $cn);
-        my $D1 = (-1 ** $n) * $v * $adjusted_logrange / $sigma2;
+        my $D1 = ((-1) ** $n) * $v * $adjusted_logrange / $sigma2;
         my $D2 = sinh($v * $adjusted_logrange / $sigma2);
 
         my $A = $A1 * $A2;
@@ -926,7 +926,7 @@ sub candle_in {
 
         $span_probability += $A * ($B * $C - $D);
     }
-
+    print $v . "\n";
     return exp( -$r_q * $t ) * $span_probability;
 }
 
