@@ -875,16 +875,17 @@ sub range {
       exp( -$r_q * $t ) - upordown( $S, $U, $D, $t, $r_q, $mu, $sigma, $w );
 }
 
+our $NTH_PARTIALSUM_CANDLE = 10;
+
 =head2 candle_in
 
     USAGE
-    my $price = candle_in($S, $U, $D, $t, $r_q, $mu, $sigma, $w)
+    my $price = candle_in($S, $range, $t, $r_q, $mu, $sigma)
 
     PARAMS
     $S stock price
     $t time (1 = 1 year)
-    $U barrier
-    $D barrier
+    $d_arith arithmetic difference
     $r_q payout currency interest rate (0.05 = 5%)
     $mu quanto drift adjustment (0.05 = 5%)
     $sigma volatility (0.3 = 30%)
@@ -892,45 +893,41 @@ sub range {
     see [3] for $r_q and $mu for quantos
 
     DESCRIPTION
-    Price a candle-in contract.
+    Price a candle-in contract. See [5].
 
 =cut
 
 sub candle_in {
-    my ( $spot, $range, $duration, $sigma) = @_;
+    my ($S, $d_arith, $t, $r_q, $mu, $sigma) = @_;
 
-    my $continuity_shift = 0;
-    my $adjusted_range =.5 * log(($spot + $range) / ($spot - $range));
-    my $final_range = $adjusted_range + $continuity_shift;
-
-    my $final_duration = $duration / ( 365 * 24 * 60 );
-    my $v = -0.5 * ( $sigma ** 2);
-
+    my $adjusted_logrange =.5 * log(($S + $d_arith) / ($S - $d_arith));
+    
+    my $v = $mu-0.5 * ( $sigma ** 2);
     my $pi = Math::Trig::pi;
     my $sigma2 = $sigma ** 2;
 
-    my $probability = 0;
+    my $span_probability = 0;
 
-    for my $n (1..10) {
-        my $cn = ($n ** 2) * ($pi ** 2) + ($v ** 2) * ($final_range ** 2) / ($sigma ** 4);
+    for my $n (1..$NTH_PARTIALSUM_CANDLE) {
+        my $cn = ($n ** 2) * ($pi ** 2) + ($v ** 2) * ($adjusted_logrange ** 2) / ($sigma ** 4);
         my $cn2 = $cn ** 2;
 
         my $A1 = 4 * ($n ** 2) * ($pi ** 2) / $cn2;
-        my $A2 = exp( - $sigma2 * $cn * $final_duration / (2 * ($final_range ** 2)));
-        my $B = 1 - (-1 ** $n) * cosh($v * $final_range / $sigma2);
-        my $C1 = 1 +  ($n ** 2) * ($pi ** 2) * $sigma2 * $final_duration / ($final_range ** 2);
-        my $C2 = 4 * ($v ** 2) * ($a ** 2)/(($sigma ** 4) * $cn);
-        my $D1 = (-1 ** $n) * $v * $final_range / $sigma2;
-        my $D2 = sinh($v * $final_range / $sigma2);
+        my $A2 = exp( - $sigma2 * $cn * $t / (2 * ($adjusted_logrange ** 2)));
+        my $B = 1 - ((-1) ** $n) * cosh($v * $adjusted_logrange / $sigma2);
+        my $C1 = 1 +  ($n ** 2) * ($pi ** 2) * $sigma2 * $t / ($adjusted_logrange ** 2);
+        my $C2 = 4 * ($v ** 2) * ($adjusted_logrange ** 2)/(($sigma ** 4) * $cn);
+        my $D1 = (-1 ** $n) * $v * $adjusted_logrange / $sigma2;
+        my $D2 = sinh($v * $adjusted_logrange / $sigma2);
 
         my $A = $A1 * $A2;
         my $C = $C1 - $C2;
         my $D = $D1 * $D2;
 
-        $probability += $A * ($B * $C - $D);
+        $span_probability += $A * ($B * $C - $D);
     }
 
-    return $probability;
+    return exp( -$r_q * $t ) * $span_probability;
 }
 
 
@@ -955,6 +952,9 @@ sub candle_in {
 
 [4] Antoon Pelsser, "Pricing Double Barrier Options: An Analytical Approach", Jan 15 1997.
     http://repub.eur.nl/pub/7807/1997-0152.pdf
+    
+[5] Hongzhong Zhang, "Drawdowns, Drawups and Their Applications", 2010.
+    http://www.columbia.edu/~hz2244/Dissertation.pdf
 
 =head1 AUTHOR
 

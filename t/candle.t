@@ -12,20 +12,24 @@ use Roundnear;
 
 my @test_cases = (
     {
-        spot        => 0.3172,
-        range       => 0.3172,
-        duration    => 0.3172,
+        S           => 100,
+        d_arith     => 20,
+        t           => 1/(365*24), #One day
+        r_q         => 0,
+        mu          => 0,
         sigma       => 0.3172,
-        prob        => 0.3172,
+        prob        => 0.967798803293955,
     },
 );
 
 foreach my $test_case (@test_cases) {
 
     my $actual_prob = Math::Business::BlackScholes::Binaries::candle_in(
-        $test_case->{spot},
-        $test_cast->{range},
-        $test_case->{duration},
+        $test_case->{S},
+        $test_case->{d_arith},
+        $test_case->{t},
+        $test_case->{r_q},
+        $test_case->{mu},
         $test_case->{sigma}
     );
 
