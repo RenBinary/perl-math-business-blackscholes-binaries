@@ -926,7 +926,7 @@ sub candle_in {
 
         $span_probability += $A * ($B * $C - $D);
     }
-    print $v . "\n";
+
     return exp( -$r_q * $t ) * $span_probability;
 }
 
