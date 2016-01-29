@@ -877,15 +877,15 @@ sub range {
 
 our $NTH_PARTIALSUM_CANDLE = 10;
 
-=head2 candle_in
+=head2 candlein
 
     USAGE
-    my $price = candle_in($S, $range, $t, $r_q, $mu, $sigma)
+    my $price = candlein($S, $log_span, $t, $r_q, $mu, $sigma)
 
     PARAMS
     $S stock price
     $t time (1 = 1 year)
-    $d_arith arithmetic difference
+    $log_span logarithm of range
     $r_q payout currency interest rate (0.05 = 5%)
     $mu quanto drift adjustment (0.05 = 5%)
     $sigma volatility (0.3 = 30%)
@@ -897,11 +897,9 @@ our $NTH_PARTIALSUM_CANDLE = 10;
 
 =cut
 
-sub candle_in {
-    my ($S, $d_arith, $t, $r_q, $mu, $sigma) = @_;
+sub candlein {
+    my ($S, $log_span, $t, $r_q, $mu, $sigma) = @_;
 
-    my $adjusted_logrange =.5 * log(($S + $d_arith) / ($S - $d_arith));
-    
     my $v = $mu-0.5 * ( $sigma ** 2);
     my $pi = Math::Trig::pi;
     my $sigma2 = $sigma ** 2;
@@ -909,16 +907,16 @@ sub candle_in {
     my $span_probability = 0;
 
     for my $n (1..$NTH_PARTIALSUM_CANDLE) {
-        my $cn = ($n ** 2) * ($pi ** 2) + ($v ** 2) * ($adjusted_logrange ** 2) / ($sigma ** 4);
+        my $cn = ($n ** 2) * ($pi ** 2) + ($v ** 2) * ($log_span ** 2) / ($sigma ** 4);
         my $cn2 = $cn ** 2;
 
         my $A1 = 4 * ($n ** 2) * ($pi ** 2) / $cn2;
-        my $A2 = exp( - $sigma2 * $cn * $t / (2 * ($adjusted_logrange ** 2)));
-        my $B = 1 - ((-1) ** $n) * cosh($v * $adjusted_logrange / $sigma2);
-        my $C1 = 1 +  ($n ** 2) * ($pi ** 2) * $sigma2 * $t / ($adjusted_logrange ** 2);
-        my $C2 = 4 * ($v ** 2) * ($adjusted_logrange ** 2)/(($sigma ** 4) * $cn);
-        my $D1 = ((-1) ** $n) * $v * $adjusted_logrange / $sigma2;
-        my $D2 = sinh($v * $adjusted_logrange / $sigma2);
+        my $A2 = exp( - $sigma2 * $cn * $t / (2 * ($log_span ** 2)));
+        my $B = 1 - ((-1) ** $n) * cosh($v * $log_span / $sigma2);
+        my $C1 = 1 +  ($n ** 2) * ($pi ** 2) * $sigma2 * $t / ($log_span ** 2);
+        my $C2 = 4 * ($v ** 2) * ($log_span ** 2)/(($sigma ** 4) * $cn);
+        my $D1 = ((-1) ** $n) * $v * $log_span / $sigma2;
+        my $D2 = sinh($v * $log_span / $sigma2);
 
         my $A = $A1 * $A2;
         my $C = $C1 - $C2;
@@ -930,7 +928,13 @@ sub candle_in {
     return exp( -$r_q * $t ) * $span_probability;
 }
 
-
+sub candleout {
+    
+    my ($S, $log_span, $t, $r_q, $mu, $sigma) = @_;
+    
+    return 
+       exp( -$r_q * $t ) * (1 - candlein($S, $log_span, $t, $r_q, $mu, $sigma));
+}
 =head1 DEPENDENCIES
 
     * Math::CDF
