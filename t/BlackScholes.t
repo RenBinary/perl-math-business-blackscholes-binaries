@@ -16,6 +16,10 @@ my $q     = 0.001;
 # except EXPIRYMISS and UPORDOWN which are computed as opposing
 # EXPIRYRANGE and RANGE respectively.
 
+# The CANDLEIN and CANDLEOUT type contracts were compared to outputs of a
+# user-built function on R which has been verified using Monte-Carlo simulations.
+# Note: Input range is in log form.
+
 my @test_cases = (
     {
         type     => 'call',
@@ -89,7 +93,18 @@ my @test_cases = (
         foreign  => 1,
         domestic => 1,
     },
-
+    {
+        type     => 'candlein',
+        barriers => [ 0.02123456 ],
+        foreign  => 0.3887467,
+        domestic => 0.3887449,
+    },
+    {
+        type     => 'candleout',
+        barriers => [ 0.02234567 ],
+        foreign  => 0.5429741,
+        domestic => 0.5429661,
+    },
 );
 
 foreach my $test_case (@test_cases) {

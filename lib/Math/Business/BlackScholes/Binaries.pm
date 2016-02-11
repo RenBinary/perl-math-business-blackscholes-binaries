@@ -877,7 +877,7 @@ sub range {
 
 our $NTH_PARTIALSUM_CANDLE = 10;
 
-=head2 candlein
+=head2 candle (in/out)
 
     USAGE
     my $price = candlein($S, $log_span, $t, $r_q, $mu, $sigma)
@@ -893,8 +893,22 @@ our $NTH_PARTIALSUM_CANDLE = 10;
     see [3] for $r_q and $mu for quantos
 
     DESCRIPTION
-    Price a candle-in contract. See [5].
-
+    Prices a binary option contract for conditions as follow:
+        
+    i. Candle-in:   The buyer of the option has the right to receive a payout 1 
+                    'High - Low' market price throughout the course of the contract
+                    is within a chosen (log) range. 
+                    
+    ii. Candle-out: The buyer of the option has the right to receive a payout 1 
+                    'High - Low' market price throughout the course of the contract
+                    exceeds a chosen (log) range. 
+    
+    See [5] for the derivation of the pricing formula.
+    
+    The pricing formula is expressed as sum of an infinite series. Using a partial sum
+    (NTH_PARTIALSUM_CANDLE) up to n = 10 is sufficient to price the contract with
+    decent level of accuracy.
+    
 =cut
 
 sub candlein {
