@@ -897,11 +897,11 @@ our $NTH_PARTIALSUM_CANDLE = 10;
         
     i. Candle-in:   The buyer of the option has the right to receive a payout 1 
                     'High - Low' market price throughout the course of the contract
-                    is within a chosen (log) range. 
+                    is lower than a chosen (log) range. 
                     
     ii. Candle-out: The buyer of the option has the right to receive a payout 1 
                     'High - Low' market price throughout the course of the contract
-                    exceeds a chosen (log) range. 
+                    is higher than a chosen (log) range. 
     
     See [5] for the derivation of the pricing formula.
     
